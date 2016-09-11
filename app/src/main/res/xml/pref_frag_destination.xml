@@ -4,34 +4,43 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
   
-  <EditTextPreference
-      android:key="hostname"
-      android:title="Hostname"
-      android:summary=""
-      android:dialogTitle="Hostname"
-      android:inputType="text"
-      android:defaultValue="localhost" />
-  
-  <EditTextPreference
-      android:key="username"
-      android:title="Username"
-      android:summary=""
-      android:dialogTitle="Username"
-      android:inputType="text"
-      android:defaultValue="someone" />
-  
-  <EditTextPreference
-      android:key="directory"
-      android:title="Directory"
-      android:summary=""
-      android:dialogTitle="Directory"
-      android:inputType="text"
-      android:defaultValue="/home/someone" />
+  <PreferenceCategory
+      android:title="Destination">
 
-  <jp.ddo.masm11.esback.GenerateKeyPairPreference
-      android:key="gen_keypair"
-      android:title="Generate key pair"
-      android:summary=""
-      />
-  
+    <EditTextPreference
+	android:key="hostname"
+	android:title="Hostname"
+	android:summary=""
+	android:dialogTitle="Hostname"
+	android:inputType="text"
+	android:defaultValue="localhost" />
+    
+    <EditTextPreference
+	android:key="username"
+	android:title="Username"
+	android:summary=""
+	android:dialogTitle="Username"
+	android:inputType="text"
+	android:defaultValue="someone" />
+    
+    <EditTextPreference
+	android:key="directory"
+	android:title="Directory"
+	android:summary=""
+	android:dialogTitle="Directory"
+	android:inputType="text"
+	android:defaultValue="/home/someone" />
+    
+    <jp.ddo.masm11.esback.GenerateKeyPairPreference
+	android:key="gen_keypair"
+	android:title="Generate key pair"
+	android:summary=""/>
+    
+  </PreferenceCategory>
+
+  <jp.ddo.masm11.esback.TimePickerPreference
+      android:key="start_time"
+      android:title="Start Time"
+      android:summary=""/>
+
 </PreferenceScreen>
