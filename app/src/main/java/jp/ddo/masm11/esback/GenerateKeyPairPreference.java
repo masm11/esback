@@ -34,7 +34,7 @@ public class GenerateKeyPairPreference extends Preference {
 	boolean failed;
 	try {
 	    JSch jsch = new JSch();
-	    KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA);
+	    KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA, 4096);
 	    keyPair.writePrivateKey(new File(getContext().getFilesDir(), "privkey").toString(), null);
 	    keyPair.writePublicKey(new File(getContext().getExternalFilesDir(null), "pubkey").toString(), null);
 	    keyPair.dispose();
