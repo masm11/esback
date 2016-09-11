@@ -12,7 +12,9 @@ public class MainActivity extends AppCompatActivity {
 	Log.init(getExternalCacheDir());
 	Log.d("start.");
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+/*
 	
 	Button btn = (Button) findViewById(R.id.button);
 	btn.setOnClickListener(new View.OnClickListener() {
@@ -22,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 		thread.start();
 	    }
 	});
+*/
 	
 	// EsBackThread.createKeyPair(getFilesDir(), getExternalCacheDir());
     }
