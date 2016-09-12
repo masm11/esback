@@ -38,9 +38,19 @@
     
   </PreferenceCategory>
 
-  <jp.ddo.masm11.esback.TimePickerPreference
-      android:key="start_time"
-      android:title="Start Time"
-      android:summary=""/>
-
+  <PreferenceCategory
+      android:title="Schedule">
+    
+    <jp.ddo.masm11.esback.TimePickerPreference
+	android:key="start_time"
+	android:title="Start Time"
+	android:summary=""/>
+    
+    <jp.ddo.masm11.esback.BackupNowPreference
+	android:key="backup_now"
+        android:title="Backup now"
+	android:summary="Tap here to backup now."/>
+    
+  </PreferenceCategory>
+  
 </PreferenceScreen>
