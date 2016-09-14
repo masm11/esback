@@ -31,7 +31,7 @@ public class PrefFragDestination extends PreferenceFragment {
 	    return;
 	String[] dirs = new String[paths.length];
 	for (int i = 0; i < paths.length; i++)
-	    dirs[i] = paths[i].toString().replaceAll("^.*/", "");
+	    dirs[i] = paths[i].getName();
 	Arrays.sort(dirs, new Comparator<String>() {
 	    public int compare(String o1, String o2) {
 		return o1.compareToIgnoreCase(o2);
