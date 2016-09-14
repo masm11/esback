@@ -53,4 +53,8 @@
     
   </PreferenceCategory>
   
+  <PreferenceCategory
+      android:key="dirs"
+      android:title="Directories"/>
+
 </PreferenceScreen>

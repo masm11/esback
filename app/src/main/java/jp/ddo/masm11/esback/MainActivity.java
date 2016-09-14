@@ -14,17 +14,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-/*
-	
-	Button btn = (Button) findViewById(R.id.button);
-	btn.setOnClickListener(new View.OnClickListener() {
-	    public void onClick(View v) {
-		Log.d("clicked.");
-		Thread thread = new Thread(new EsBackThread(getFilesDir()));
-		thread.start();
-	    }
-	});
-*/
 	
 	// EsBackThread.createKeyPair(getFilesDir(), getExternalCacheDir());
     }
