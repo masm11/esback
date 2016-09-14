@@ -26,27 +26,23 @@ public class PrefFragDestination extends PreferenceFragment {
     }
     
     private void addDirs(PreferenceCategory cat) {
-	try {
-	    File[] paths = new File("/sdcard/").listFiles();
-	    if (paths == null)	// permission がない状態では null になる。
-		return;
-	    String[] dirs = new String[paths.length];
-	    for (int i = 0; i < paths.length; i++)
-		dirs[i] = paths[i].toString().replaceAll("^.*/", "");
-	    Arrays.sort(dirs, new Comparator<String>() {
-		public int compare(String o1, String o2) {
-		    return o1.compareToIgnoreCase(o2);
-		}
-	    });
-	    
-	    for (String dir: dirs) {
-		SwitchPreference pref = new SwitchPreference(getContext());
-		pref.setKey("dir_" + dir);
-		pref.setTitle(dir);
-		cat.addPreference(pref);
+	File[] paths = new File("/sdcard/").listFiles();
+	if (paths == null)	// permission がない状態では null になる。
+	    return;
+	String[] dirs = new String[paths.length];
+	for (int i = 0; i < paths.length; i++)
+	    dirs[i] = paths[i].toString().replaceAll("^.*/", "");
+	Arrays.sort(dirs, new Comparator<String>() {
+	    public int compare(String o1, String o2) {
+		return o1.compareToIgnoreCase(o2);
 	    }
-	} catch (Throwable e) {
-	    Log.e(e, "error...");
+	});
+	
+	for (String dir: dirs) {
+	    SwitchPreference pref = new SwitchPreference(getContext());
+	    pref.setKey("dir_" + dir);
+	    pref.setTitle(dir);
+	    cat.addPreference(pref);
 	}
     }
 }
