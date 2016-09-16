@@ -23,6 +23,31 @@ public class PrefFragDestination extends PreferenceFragment {
 	PreferenceManager manager = getPreferenceManager();
 	PreferenceCategory cat = (PreferenceCategory) manager.findPreference("dirs");
 	addDirs(cat);
+	
+	for (String key: new String[] { "hostname", "username", "directory" }) {
+	    EditTextPreference etp;
+	    etp = (EditTextPreference) findPreference(key);
+	    etp.setSummary(etp.getText());
+	    etp.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+		@Override
+		public boolean onPreferenceChange(Preference pref, Object val) {
+		    pref.setSummary(val.toString());
+		    return true;
+		}
+	    });
+	}
+	
+	TimePickerPreference tpp = (TimePickerPreference) findPreference("start_time");
+	tpp.setSummary(tpp.getDisplayString());
+	tpp.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+	    @Override
+	    public boolean onPreferenceChange(Preference pref, Object val) {
+		((TimePickerPreference) pref).setSummary(TimePickerPreference.getDisplayString((Integer) val));
+		return true;
+	    }
+	});
+
+	
     }
     
     private void addDirs(PreferenceCategory cat) {

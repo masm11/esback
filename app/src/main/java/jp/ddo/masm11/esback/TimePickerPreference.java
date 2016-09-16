@@ -42,9 +42,12 @@ public class TimePickerPreference extends DialogPreference {
     @Override
     protected void onDialogClosed(boolean positiveResult) {
 	if (positiveResult) {
-	    curVal = timePicker.getHour() * 60 + timePicker.getMinute();
-	    Log.d("curVal=%d", curVal);
-	    persistInt(curVal);
+	    int newVal = timePicker.getHour() * 60 + timePicker.getMinute();
+	    Log.d("newVal=%d", newVal);
+	    if (callChangeListener(newVal)) {
+		curVal = newVal;
+		persistInt(curVal);
+	    }
 	}
     }
     
@@ -82,5 +85,13 @@ public class TimePickerPreference extends DialogPreference {
 	    Log.w("not match.");
 	    return null;
 	}
+    }
+    
+    public String getDisplayString() {
+	return getDisplayString(curVal);
+    }
+    public static String getDisplayString(int val) {
+	Log.d("val=%d", val);
+	return String.format("%d:%02d", val / 60 % 24, val % 60);
     }
 }
