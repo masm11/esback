@@ -47,6 +47,14 @@
 	android:defaultValue="3:00"
 	android:summary=""/>
     
+    <EditTextPreference
+	android:key="essid"
+	android:title="Wi-Fi ESSID"
+	android:summary=""
+	android:dialogTitle="Wi-Fi ESSID"
+	android:inputType="text"
+	android:defaultValue="" />
+
     <jp.ddo.masm11.esback.BackupNowPreference
 	android:key="backup_now"
         android:title="Backup now"

@@ -24,7 +24,7 @@ public class PrefFragDestination extends PreferenceFragment {
 	PreferenceCategory cat = (PreferenceCategory) manager.findPreference("dirs");
 	addDirs(cat);
 	
-	for (String key: new String[] { "hostname", "username", "directory" }) {
+	for (String key: new String[] { "hostname", "username", "directory", "essid" }) {
 	    EditTextPreference etp;
 	    etp = (EditTextPreference) findPreference(key);
 	    etp.setSummary(etp.getText());
@@ -46,8 +46,6 @@ public class PrefFragDestination extends PreferenceFragment {
 		return true;
 	    }
 	});
-
-	
     }
     
     private void addDirs(PreferenceCategory cat) {
