@@ -17,6 +17,7 @@ public class TimePickerPreference extends DialogPreference {
     private static final int DEFAULT_VALUE = 1;
     private static final Pattern pattern = Pattern.compile("(\\d+):(\\d+)");
     
+    private TimePicker timePicker;
     private int curVal;
     
     public TimePickerPreference(Context context, AttributeSet attrs) {
@@ -30,7 +31,7 @@ public class TimePickerPreference extends DialogPreference {
     
     @Override
     protected View onCreateDialogView() {
-	TimePicker timePicker = (TimePicker) super.onCreateDialogView();
+	timePicker = (TimePicker) super.onCreateDialogView();
 	timePicker.setIs24HourView(true);
 	Log.d("curVal=%d", curVal);
 	timePicker.setHour(curVal / 60 % 24);
@@ -41,7 +42,6 @@ public class TimePickerPreference extends DialogPreference {
     @Override
     protected void onDialogClosed(boolean positiveResult) {
 	if (positiveResult) {
-	    TimePicker timePicker = (TimePicker) super.onCreateDialogView();
 	    curVal = timePicker.getHour() * 60 + timePicker.getMinute();
 	    Log.d("curVal=%d", curVal);
 	    persistInt(curVal);
