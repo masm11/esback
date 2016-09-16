@@ -44,6 +44,7 @@
     <jp.ddo.masm11.esback.TimePickerPreference
 	android:key="start_time"
 	android:title="Start Time"
+	android:defaultValue="3:00"
 	android:summary=""/>
     
     <jp.ddo.masm11.esback.BackupNowPreference
