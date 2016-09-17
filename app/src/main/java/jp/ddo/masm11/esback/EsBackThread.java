@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
 import java.util.Map;
-import java.util.zip.ZipOutputStream;
-import java.util.zip.ZipEntry;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -14,9 +12,13 @@ import com.jcraft.jsch.UserInfo;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.KeyPair;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+
 public class EsBackThread implements Runnable {
     
-    private void sendFileTo(File topDir, String relPath, ZipOutputStream zip)
+    private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
 	File file = new File(topDir, relPath);
@@ -28,25 +30,26 @@ public class EsBackThread implements Runnable {
 		return;
 	    }
 	    for (File f: files)
-		sendFileTo(topDir, relPath + "/" + f.getName(), zip);
+		sendFileTo(topDir, relPath + "/" + f.getName(), tar);
 	} else {
 	    FileInputStream fis = new FileInputStream(file);
 	    
-	    zip.putNextEntry(new ZipEntry(relPath));
+	    TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+	    tar.putArchiveEntry(e);
 	    byte[] buf = new byte[1024];
 	    while (true) {
 		int s = fis.read(buf);
 		if (s == -1)
 		    break;
-		zip.write(buf, 0, s);
+		tar.write(buf, 0, s);
 	    }
-	    zip.closeEntry();
+	    tar.closeArchiveEntry();
 	    
 	    fis.close();
 	}
     }
     
-    private void sendTreeTo(File topDir, ZipOutputStream zip)
+    private void sendTreeTo(File topDir, TarArchiveOutputStream tar)
 	    throws IOException {
 	File[] files = topDir.listFiles();
 	if (files == null) {
@@ -59,7 +62,7 @@ public class EsBackThread implements Runnable {
 	    Boolean onoff = (Boolean) pref.get("dir_" + name);
 	    if (onoff != null && onoff) {
 		Log.d("%s: on", name);
-		sendFileTo(topDir, name, zip);
+		sendFileTo(topDir, name, tar);
 	    } else {
 		Log.d("%s: off", name);
 	    }
@@ -96,12 +99,16 @@ public class EsBackThread implements Runnable {
 	    ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 	    channel.connect();
 	    
-	    OutputStream os = channel.put("/home/backup/android/android-test.zip");
-	    ZipOutputStream zip = new ZipOutputStream(os);
+	    TarArchiveOutputStream tar =
+		    new TarArchiveOutputStream(
+			    new GzipCompressorOutputStream(
+				    channel.put("/home/backup/android/android-test.tar.gz")
+				));
+	    tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 	    
-	    sendTreeTo(topDir, zip);
+	    sendTreeTo(topDir, tar);
 	    
-	    zip.close();
+	    tar.close();
 	    channel.exit();
 	    session.disconnect();
 	} catch (Exception e) {
