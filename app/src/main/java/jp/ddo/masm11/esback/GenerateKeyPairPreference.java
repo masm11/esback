@@ -23,10 +23,8 @@ public class GenerateKeyPairPreference extends Preference {
 	@Override
 	protected void onPreExecute() {
 	    failed = true;
-	    pd = new ProgressDialog(getContext());
-	    pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-	    pd.setMessage("Generating...");
-	    pd.show();
+	    
+	    pd = ProgressDialog.show(getContext(), null, "Generating...");
 	}
 	
 	@Override
