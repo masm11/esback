@@ -24,6 +24,10 @@ public class EsBackThread implements Runnable {
 	File file = new File(topDir, relPath);
 	
 	if (file.isDirectory()) {
+	    TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+	    tar.putArchiveEntry(e);
+	    tar.closeArchiveEntry();
+	    
 	    File[] files = file.listFiles();
 	    if (files == null) {
 		Log.w("%s: can't access.", file.toString());
