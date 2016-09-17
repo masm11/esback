@@ -85,6 +85,7 @@ public class EsBackThread implements Runnable {
     
     public void run() {
 	Log.d("start.");
+	
 	try {
 	    JSch jsch = new JSch();
 	    
