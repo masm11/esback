@@ -21,6 +21,8 @@ public class EsBackService extends Service {
 			    Environment.getExternalStorageDirectory(),
 			    new File(getFilesDir(), "privkey").toString(),
 			    PreferenceManager.getDefaultSharedPreferences(this).getAll()));
+	    // 重いので下げておく。
+	    thread.setPriority(Thread.MIN_PRIORITY);
 	    thread.start();
 	}
 	return START_STICKY;
