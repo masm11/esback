@@ -4,8 +4,10 @@ import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 import java.util.zip.ZipEntry;
+
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.UserInfo;
@@ -14,39 +16,64 @@ import com.jcraft.jsch.KeyPair;
 
 public class EsBackThread implements Runnable {
     
-    private void sendFileTo(ZipOutputStream zip)
+    private void sendFileTo(File topDir, String relPath, ZipOutputStream zip)
 	    throws IOException {
-	String path = "/ueventd.qcom.rc";
-	FileInputStream fis = new FileInputStream(path);
+	Log.d("relPath=%s", relPath);
+	File file = new File(topDir, relPath);
 	
-	zip.putNextEntry(new ZipEntry(path));
-	byte[] buf = new byte[1024];
-	while (true) {
-	    int s = fis.read(buf);
-	    if (s == -1)
-		break;
-	    zip.write(buf, 0, s);
+	if (file.isDirectory()) {
+	    File[] files = file.listFiles();
+	    if (files == null) {
+		Log.w("%s: can't access.", file.toString());
+		return;
+	    }
+	    for (File f: files)
+		sendFileTo(topDir, relPath + "/" + f.getName(), zip);
+	} else {
+	    FileInputStream fis = new FileInputStream(file);
+	    
+	    zip.putNextEntry(new ZipEntry(relPath));
+	    byte[] buf = new byte[1024];
+	    while (true) {
+		int s = fis.read(buf);
+		if (s == -1)
+		    break;
+		zip.write(buf, 0, s);
+	    }
+	    zip.closeEntry();
+	    
+	    fis.close();
 	}
-	zip.closeEntry();
-	
-	fis.close();
     }
     
-    static void createKeyPair(File privDir, File pubDir) {
-	try {
-	    JSch jsch = new JSch();
-	    KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA);
-	    keyPair.writePrivateKey(new File(privDir, "privkey").toString(), null);
-	    keyPair.writePublicKey(new File(pubDir, "pubkey").toString(), null);
-	    keyPair.dispose();
-	} catch (Exception e) {
-	    Log.e(e, "exception");
+    private void sendTreeTo(File topDir, ZipOutputStream zip)
+	    throws IOException {
+	File[] files = topDir.listFiles();
+	if (files == null) {
+	    Log.w("listFiles() failed.");
+	    return;
+	}
+	
+	for (File file: files) {
+	    String name = file.getName();
+	    Boolean onoff = (Boolean) pref.get("dir_" + name);
+	    if (onoff != null && onoff) {
+		Log.d("%s: on", name);
+		sendFileTo(topDir, name, zip);
+	    } else {
+		Log.d("%s: off", name);
+	    }
 	}
     }
     
-    final File privDir;
-    EsBackThread(File privDir) {
-	this.privDir = privDir;
+    private final File topDir;
+    private final String privKeyFile;
+    private final Map<String, ?> pref;
+    
+    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref) {
+	this.topDir = topDir;
+	this.privKeyFile = privKeyFile;
+	this.pref = pref;
     }
     
     public void run() {
@@ -54,10 +81,12 @@ public class EsBackThread implements Runnable {
 	try {
 	    JSch jsch = new JSch();
 	    
-	    jsch.addIdentity(new File(privDir, "privkey").toString(), (String) null);
+	    jsch.addIdentity(privKeyFile, (String) null);
 	    
-	    String host = "mike";
-	    String user = "masm";
+	    String host = (String) pref.get("hostname");
+	    String user = (String) pref.get("username");
+	    Log.d("host=%s", host);
+	    Log.d("user=%s", user);
 	    
 	    Session session = jsch.getSession(user, host, 22);
 	    UserInfo ui = new EsUserInfo();
@@ -70,7 +99,7 @@ public class EsBackThread implements Runnable {
 	    OutputStream os = channel.put("/home/backup/android/android-test.zip");
 	    ZipOutputStream zip = new ZipOutputStream(os);
 	    
-	    sendFileTo(zip);
+	    sendTreeTo(topDir, zip);
 	    
 	    zip.close();
 	    channel.exit();

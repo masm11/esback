@@ -3,6 +3,7 @@ package jp.ddo.masm11.esback;
 import android.preference.Preference;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.util.AttributeSet;
 import android.app.AlertDialog;
 
@@ -17,6 +18,8 @@ public class BackupNowPreference extends Preference {
 		.setMessage("Backup now?")
 		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 		    public void onClick(DialogInterface dialog, int which) {
+			Intent intent = new Intent(getContext(), EsBackService.class);
+			getContext().startService(intent);
 		    }
 		})
 		.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
