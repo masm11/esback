@@ -34,7 +34,8 @@
     <jp.ddo.masm11.esback.GenerateKeyPairPreference
 	android:key="gen_keypair"
 	android:title="Generate key pair"
-	android:summary=""/>
+	android:summary=""
+	android:defaultValue="init"/>
     
   </PreferenceCategory>
 
