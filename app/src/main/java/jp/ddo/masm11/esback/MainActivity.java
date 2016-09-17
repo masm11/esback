@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity
 		ActivityCompat.requestPermissions(this, permissions, REQ_PERMISSION_ON_CREATE);
 	    }
 	}
-	
-	// EsBackThread.createKeyPair(getFilesDir(), getExternalCacheDir());
     }
     
     @Override

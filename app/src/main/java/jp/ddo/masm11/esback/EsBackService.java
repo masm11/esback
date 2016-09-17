@@ -21,7 +21,8 @@ public class EsBackService extends Service {
     
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-	if (intent != null) {
+	Log.d("flags=%d", flags);
+	if (flags == 0 && intent != null) {
 	    Map<String, ?> prefMap = PreferenceManager.getDefaultSharedPreferences(this).getAll();
 	    
 	    if (checkCondition(prefMap)) {

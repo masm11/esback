@@ -8,10 +8,16 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceCategory;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.os.Bundle;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.Context;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Calendar;
+import java.text.DateFormat;
 
 public class PrefFragDestination extends PreferenceFragment {
     @Override
@@ -43,6 +49,7 @@ public class PrefFragDestination extends PreferenceFragment {
 	    @Override
 	    public boolean onPreferenceChange(Preference pref, Object val) {
 		((TimePickerPreference) pref).setSummary(TimePickerPreference.getDisplayString((Integer) val));
+		schedule((Integer) val);
 		return true;
 	    }
 	});
@@ -67,5 +74,25 @@ public class PrefFragDestination extends PreferenceFragment {
 	    pref.setTitle(dir);
 	    cat.addPreference(pref);
 	}
+    }
+    
+    private void schedule(int setting) {
+	AlarmManager manager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+	
+	Intent intent = new Intent(getContext(), EsBackService.class);
+	PendingIntent pi = PendingIntent.getService(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+	
+	Calendar now = Calendar.getInstance();
+	Calendar sched = (Calendar) now.clone();
+	sched.set(Calendar.HOUR_OF_DAY, setting / 60);
+	sched.set(Calendar.MINUTE, setting % 60);
+	if (sched.compareTo(now) < 0) {
+	    // 指定時刻はもう過ぎていたので、次の日に。
+	    sched.add(Calendar.DAY_OF_MONTH, 1);
+	}
+	
+	Log.d("scheduling at %s", DateFormat.getDateTimeInstance().format(sched.getTime()));
+	manager.cancel(pi);
+	manager.set(AlarmManager.RTC, sched.getTimeInMillis(), pi);
     }
 }
