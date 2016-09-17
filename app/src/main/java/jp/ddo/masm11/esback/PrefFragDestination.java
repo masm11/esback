@@ -86,6 +86,8 @@ public class PrefFragDestination extends PreferenceFragment {
 	Calendar sched = (Calendar) now.clone();
 	sched.set(Calendar.HOUR_OF_DAY, setting / 60);
 	sched.set(Calendar.MINUTE, setting % 60);
+	sched.set(Calendar.SECOND, 0);
+	sched.set(Calendar.MILLISECOND, 0);
 	if (sched.compareTo(now) < 0) {
 	    // 指定時刻はもう過ぎていたので、次の日に。
 	    sched.add(Calendar.DAY_OF_MONTH, 1);
