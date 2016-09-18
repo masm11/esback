@@ -4,6 +4,7 @@ import android.app.Service;
 import android.os.IBinder;
 import android.os.Environment;
 import android.os.BatteryManager;
+import android.os.PowerManager;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Context;
@@ -15,8 +16,14 @@ import java.util.Map;
 import java.io.File;
 
 public class EsBackService extends Service {
+    private PowerManager powerManager;
+    private PowerManager.WakeLock wakeLock;
+    
     @Override
     public void onCreate() {
+	Log.d("");
+	powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+	wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EsBack");
     }
     
     @Override
@@ -29,13 +36,25 @@ public class EsBackService extends Service {
 		Thread thread = new Thread(new EsBackThread(
 				Environment.getExternalStorageDirectory(),
 				new File(getFilesDir(), "privkey").toString(),
-				prefMap));
+				prefMap,
+				new EsBackThread.FinishListener() {
+				    @Override
+				    public void onFinished() {
+					// thread.join() したいけど、ここじゃ無理だよなぁ。
+					Log.d("release wakelock.");
+					wakeLock.release();
+					Log.d("stop self.");
+					stopSelf();
+					Log.d("end.");
+				    }
+				}));
 		// 重いので下げておく。
 		thread.setPriority(Thread.MIN_PRIORITY);
+		wakeLock.acquire();
 		thread.start();
 	    }
 	}
-	return START_STICKY;
+	return START_NOT_STICKY;
     }
     
     @Override

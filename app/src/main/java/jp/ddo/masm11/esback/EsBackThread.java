@@ -18,6 +18,10 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 public class EsBackThread implements Runnable {
     
+    public interface FinishListener {
+	void onFinished();
+    }
+    
     private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
@@ -73,14 +77,16 @@ public class EsBackThread implements Runnable {
 	}
     }
     
+    private final FinishListener finishListener;
     private final File topDir;
     private final String privKeyFile;
     private final Map<String, ?> pref;
     
-    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref) {
+    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref, FinishListener finishListener) {
 	this.topDir = topDir;
 	this.privKeyFile = privKeyFile;
 	this.pref = pref;
+	this.finishListener = finishListener;
     }
     
     public void run() {
@@ -119,6 +125,8 @@ public class EsBackThread implements Runnable {
 	} catch (Exception e) {
 	    Log.e(e, "exception");
 	}
+	
+	finishListener.onFinished();
 	Log.d("end.");
     }
     
