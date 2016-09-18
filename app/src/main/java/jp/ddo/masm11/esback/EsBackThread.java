@@ -24,6 +24,10 @@ public class EsBackThread implements Runnable {
 	void onFinished();
     }
     
+    private int min(long a, long b) {
+	return (int) (a < b ? a : b);
+    }
+    
     private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
@@ -46,13 +50,28 @@ public class EsBackThread implements Runnable {
 	    
 	    TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
 	    tar.putArchiveEntry(e);
+	    
+	    long fileSize = e.getSize();
+	    long writtenSize = 0;
+	    
 	    byte[] buf = new byte[1024];
-	    while (true) {
-		int s = fis.read(buf);
+	    while (writtenSize < fileSize) {
+		int s = min(fileSize - writtenSize, buf.length);
+		s = fis.read(buf, 0, s);
 		if (s == -1)
 		    break;
 		tar.write(buf, 0, s);
+		writtenSize += s;
 	    }
+	    
+	    // read 中に file が小さくなった場合の処理
+	    byte[] buf0 = new byte[1024];
+	    while (writtenSize < fileSize) {
+		int s = min(fileSize - writtenSize, buf0.length);
+		tar.write(buf0, 0, s);
+		writtenSize += s;
+	    }
+	    
 	    tar.closeArchiveEntry();
 	    
 	    fis.close();
