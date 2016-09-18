@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Context;
 import android.preference.PreferenceManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
@@ -94,6 +96,21 @@ public class EsBackService extends Service {
     }
     
     private boolean checkWifiCondition(Map<String, ?> prefMap) {
+	ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	NetworkInfo ni = cm.getActiveNetworkInfo();
+	if (ni == null) {
+	    Log.i("No active network.");
+	    return false;
+	}
+	if (!ni.isConnected()) {
+	    Log.i("Active network not connected.");
+	    return false;
+	}
+	if (ni.getType() != ConnectivityManager.TYPE_WIFI) {
+	    Log.i("Active network is not wifi.");
+	    return false;
+	}
+	
 	WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 	WifiInfo info = manager.getConnectionInfo();
 	if (info == null) {
