@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
 import java.util.Map;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -110,10 +112,14 @@ public class EsBackThread implements Runnable {
 	    ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 	    channel.connect();
 	    
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmss");
+	    String bkupPath = String.format("%s/android-%s.tar.gz",
+		    pref.get("directory"), sdf.format(new Date()));
+	    
 	    TarArchiveOutputStream tar =
 		    new TarArchiveOutputStream(
 			    new GzipCompressorOutputStream(
-				    channel.put("/home/backup/android/android-test.tar.gz")
+				    channel.put(bkupPath)
 				));
 	    tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 	    
