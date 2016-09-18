@@ -24,4 +24,8 @@
     <string name="please_grant_permission">You need to grant a permission to read the internal storage. Please do on the following dialog.</string>
     
     <string name="do_you_want_to_backup_now">Backup now?</string>
+    
+    <string name="backup_in_progress">Backup in progress...</string>
+    <string name="backup_done">Backup done.</string>
+    <string name="backup_error">An error occured while backup.</string>
 </resources>

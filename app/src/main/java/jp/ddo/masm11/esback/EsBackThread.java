@@ -20,7 +20,9 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 public class EsBackThread implements Runnable {
     
-    public interface FinishListener {
+    public interface ProgressListener {
+	void onProgress(long cur, long max);
+	void onError(Throwable e);
 	void onFinished();
     }
     
@@ -28,15 +30,19 @@ public class EsBackThread implements Runnable {
 	return (int) (a < b ? a : b);
     }
     
-    private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar)
+    private long curBytes, maxBytes;
+    
+    private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar, boolean scanning)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
 	File file = new File(topDir, relPath);
 	
 	if (file.isDirectory()) {
-	    TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
-	    tar.putArchiveEntry(e);
-	    tar.closeArchiveEntry();
+	    if (!scanning) {
+		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+		tar.putArchiveEntry(e);
+		tar.closeArchiveEntry();
+	    }
 	    
 	    File[] files = file.listFiles();
 	    if (files == null) {
@@ -44,41 +50,49 @@ public class EsBackThread implements Runnable {
 		return;
 	    }
 	    for (File f: files)
-		sendFileTo(topDir, relPath + "/" + f.getName(), tar);
+		sendFileTo(topDir, relPath + "/" + f.getName(), tar, scanning);
 	} else {
-	    FileInputStream fis = new FileInputStream(file);
-	    
-	    TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
-	    tar.putArchiveEntry(e);
-	    
-	    long fileSize = e.getSize();
-	    long writtenSize = 0;
-	    
-	    byte[] buf = new byte[1024];
-	    while (writtenSize < fileSize) {
-		int s = min(fileSize - writtenSize, buf.length);
-		s = fis.read(buf, 0, s);
-		if (s == -1)
-		    break;
-		tar.write(buf, 0, s);
-		writtenSize += s;
+	    if (scanning)
+		curBytes += file.length();
+	    else {
+		FileInputStream fis = new FileInputStream(file);
+		
+		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+		tar.putArchiveEntry(e);
+		
+		long fileSize = e.getSize();
+		long writtenSize = 0;
+		
+		byte[] buf = new byte[1024];
+		while (writtenSize < fileSize) {
+		    int s = min(fileSize - writtenSize, buf.length);
+		    s = fis.read(buf, 0, s);
+		    if (s == -1)
+			break;
+		    tar.write(buf, 0, s);
+		    writtenSize += s;
+		    curBytes += s;
+		    progressListener.onProgress(curBytes, maxBytes);
+		}
+		
+		// read 中に file が小さくなった場合の処理
+		byte[] buf0 = new byte[1024];
+		while (writtenSize < fileSize) {
+		    int s = min(fileSize - writtenSize, buf0.length);
+		    tar.write(buf0, 0, s);
+		    writtenSize += s;
+		    curBytes += s;
+		    progressListener.onProgress(curBytes, maxBytes);
+		}
+		
+		tar.closeArchiveEntry();
+		
+		fis.close();
 	    }
-	    
-	    // read 中に file が小さくなった場合の処理
-	    byte[] buf0 = new byte[1024];
-	    while (writtenSize < fileSize) {
-		int s = min(fileSize - writtenSize, buf0.length);
-		tar.write(buf0, 0, s);
-		writtenSize += s;
-	    }
-	    
-	    tar.closeArchiveEntry();
-	    
-	    fis.close();
 	}
     }
     
-    private void sendTreeTo(File topDir, TarArchiveOutputStream tar)
+    private void sendTreeTo(File topDir, TarArchiveOutputStream tar, boolean scanning)
 	    throws IOException {
 	File[] files = topDir.listFiles();
 	if (files == null) {
@@ -91,23 +105,23 @@ public class EsBackThread implements Runnable {
 	    Boolean onoff = (Boolean) pref.get("dir_" + name);
 	    if (onoff != null && onoff) {
 		Log.d("%s: on", name);
-		sendFileTo(topDir, name, tar);
+		sendFileTo(topDir, name, tar, scanning);
 	    } else {
 		Log.d("%s: off", name);
 	    }
 	}
     }
     
-    private final FinishListener finishListener;
+    private final ProgressListener progressListener;
     private final File topDir;
     private final String privKeyFile;
     private final Map<String, ?> pref;
     
-    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref, FinishListener finishListener) {
+    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref, ProgressListener progressListener) {
 	this.topDir = topDir;
 	this.privKeyFile = privKeyFile;
 	this.pref = pref;
-	this.finishListener = finishListener;
+	this.progressListener = progressListener;
     }
     
     public void run() {
@@ -142,16 +156,24 @@ public class EsBackThread implements Runnable {
 				));
 	    tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 	    
-	    sendTreeTo(topDir, tar);
+	    maxBytes = 0;
+	    curBytes = 0;
+	    sendTreeTo(topDir, null, true);
+	    
+	    maxBytes = curBytes;
+	    curBytes = 0;
+	    Log.d("maxBytes=%d", maxBytes);
+	    sendTreeTo(topDir, tar, false);
 	    
 	    tar.close();
 	    channel.exit();
 	    session.disconnect();
 	} catch (Exception e) {
 	    Log.e(e, "exception");
+	    progressListener.onError(e);
 	}
 	
-	finishListener.onFinished();
+	progressListener.onFinished();
 	Log.d("end.");
     }
     

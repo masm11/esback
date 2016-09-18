@@ -24,4 +24,8 @@
     <string name="please_grant_permission">内部ストレージを読み取るには権限が必要です。次のダイアログで許可してください。</string>
     
     <string name="do_you_want_to_backup_now">今すぐバックアップしますか?</string>
+    
+    <string name="backup_in_progress">バックアップ中です...</string>
+    <string name="backup_done">バックアップが完了しました。</string>
+    <string name="backup_error">バックアップ中にエラーが発生しました。</string>
 </resources>

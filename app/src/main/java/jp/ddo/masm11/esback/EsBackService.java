@@ -1,7 +1,9 @@
 package jp.ddo.masm11.esback;
 
+import android.support.v7.app.NotificationCompat;
 import android.app.Service;
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.os.IBinder;
 import android.os.Environment;
@@ -24,6 +26,34 @@ import java.util.Calendar;
 public class EsBackService extends Service {
     private PowerManager powerManager;
     private PowerManager.WakeLock wakeLock;
+    private NotificationManager notificationManager;
+    private NotificationCompat.Builder notificationBuilder;
+    private long lastProgressTime = 0;
+    
+    private class ThreadProgressListener implements EsBackThread.ProgressListener {
+	private Throwable throwable;
+	
+	@Override
+	public void onProgress(long cur, long max) {
+	    setNotification(false, cur, max, null);
+	}
+	
+	@Override
+	public void onError(Throwable e) {
+	    throwable = e;
+	}
+	
+	@Override
+	public void onFinished() {
+	    setNotification(true, 0, 0, throwable);
+	    // thread.join() したいけど、ここじゃ無理だよなぁ。
+	    Log.d("release wakelock.");
+	    wakeLock.release();
+	    Log.d("stop self.");
+	    stopSelf();
+	    Log.d("end.");
+	}
+    }
     
     @Override
     public void onCreate() {
@@ -45,21 +75,12 @@ public class EsBackService extends Service {
 				Environment.getExternalStorageDirectory(),
 				new File(getFilesDir(), "privkey").toString(),
 				prefMap,
-				new EsBackThread.FinishListener() {
-				    @Override
-				    public void onFinished() {
-					// thread.join() したいけど、ここじゃ無理だよなぁ。
-					Log.d("release wakelock.");
-					wakeLock.release();
-					Log.d("stop self.");
-					stopSelf();
-					Log.d("end.");
-				    }
-				}));
+				new ThreadProgressListener()));
 		// 重いので下げておく。
 		thread.setPriority(Thread.MIN_PRIORITY);
 		wakeLock.acquire();
 		thread.start();
+		setNotification(false, 0, 0, null);
 	    }
 	}
 	return START_NOT_STICKY;
@@ -68,6 +89,40 @@ public class EsBackService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
 	return null;
+    }
+    
+    private void setNotification(boolean completed, long cur, long max, Throwable e) {
+	if (notificationManager == null) {
+	    notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+	    notificationBuilder = new NotificationCompat.Builder(this);
+	    notificationBuilder.setContentTitle("EsBack");
+	    notificationBuilder.setContentText(getResources().getText(R.string.backup_in_progress));
+	    notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
+	}
+	
+	if (completed) {
+	    notificationBuilder.setProgress(0, 0, false);
+	    notificationBuilder.setContentText(getResources().getText(e == null ? R.string.backup_done : R.string.backup_error));
+	    notificationManager.notify(0, notificationBuilder.build());
+	} else if (max == 0) {
+	    notificationBuilder.setProgress(0, 0, true);
+	    notificationManager.notify(0, notificationBuilder.build());
+	} else {
+	    int m = (int) (max / 1024);
+	    int c = (int) (cur / 1024);
+	    if (c > m)
+		c = m;
+	    notificationBuilder.setProgress(m, c, false);
+	    
+	    /* 超高速で更新すると、画面がめちゃめちゃ重くなるので、
+	     * ゆっくり更新する。
+	     */
+	    long now = System.currentTimeMillis();
+	    if (now >= lastProgressTime + 500) {
+		lastProgressTime = now;
+		notificationManager.notify(0, notificationBuilder.build());
+	    }
+	}
     }
     
     private boolean checkCondition(Map<String, ?> prefMap) {
