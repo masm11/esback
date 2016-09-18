@@ -84,6 +84,7 @@ public class EsBackPreferenceFragment extends PreferenceFragment {
 	PendingIntent pi = PendingIntent.getService(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
 	
 	Calendar now = Calendar.getInstance();
+	now.add(Calendar.SECOND, 5);
 	Calendar sched = (Calendar) now.clone();
 	sched.set(Calendar.HOUR_OF_DAY, setting / 60);
 	sched.set(Calendar.MINUTE, setting % 60);
