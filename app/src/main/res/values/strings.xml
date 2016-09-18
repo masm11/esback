@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">EsBack</string>
+
+    <string name="destination">Destination</string>
+    <string name="hostname">Hostname</string>
+    <string name="username">Username</string>
+    <string name="directory">Directory</string>
+    <string name="generate_key_pair">Generate key pair</string>
+    <string name="schedule">Schedule</string>
+    <string name="start_time">Start Time</string>
+    <string name="wifi_essid">Wi-Fi ESSID</string>
+    <string name="backup_now">Backup now</string>
+    <string name="tap_here_to_backup_now">Tap here to backup now.</string>
+    <string name="directories">Directories</string>
+    
+    <string name="generating">Generating...</string>
+    <string name="generated_succ">A key pair was successfully generated and saved.</string>
+    <string name="generated_fail">Key pair generation was failed.</string>
+    <string name="keypair_init">Tap here to generate a key pair.</string>
+    <string name="keypair_failed">Latest keypair generation was failed. Tap here to regenerate one.</string>
+    <string name="keypair_succ_exist">The public key was saved as %1$s. Append its content to your server\'s ~/.ssh/authorized_keys. Tap here to regenerate a key pair.</string>
+    <string name="keypair_succ_nonexist">Latest key pair generation was successful. Tap here to regenerate one.</string>
+
+    <string name="please_grant_permission">You need to grant a permission to read the internal storage. Please do on the following dialog.</string>
+    
+    <string name="do_you_want_to_backup_now">Backup now?</string>
 </resources>

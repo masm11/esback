@@ -15,14 +15,14 @@ public class BackupNowPreference extends Preference {
     @Override
     protected void onClick() {
 	AlertDialog dialog = new AlertDialog.Builder(getContext())
-		.setMessage("Backup now?")
-		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		.setMessage(R.string.do_you_want_to_backup_now)
+		.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 		    public void onClick(DialogInterface dialog, int which) {
 			Intent intent = new Intent(getContext(), EsBackService.class);
 			getContext().startService(intent);
 		    }
 		})
-		.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
 		    public void onClick(DialogInterface dialog, int which) {
 			// NOP
 		    }

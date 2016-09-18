@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">EsBack</string>
+
+    <string name="destination">保存先</string>
+    <string name="hostname">ホスト名</string>
+    <string name="username">ユーザ名</string>
+    <string name="directory">ディレクトリ</string>
+    <string name="generate_key_pair">鍵ペアを生成</string>
+    <string name="schedule">スケジュール</string>
+    <string name="start_time">開始時刻</string>
+    <string name="wifi_essid">Wi-Fi ESSID</string>
+    <string name="backup_now">今すぐバックアップ</string>
+    <string name="tap_here_to_backup_now">今すぐバックアップするにはここをタップしてください。</string>
+    <string name="directories">ディレクトリ</string>
+
+    <string name="generating">生成中...</string>
+    <string name="generated_succ">鍵ペアを生成し、保存しました。</string>
+    <string name="generated_fail">鍵ペアの生成に失敗しました。</string>
+    <string name="keypair_init">鍵ペアを生成するにはここをタップしてください。</string>
+    <string name="keypair_failed">鍵ペアの生成に失敗しました。再度生成するにはここをタップしてください。</string>
+    <string name="keypair_succ_exist">公開鍵は %1$s に保存されています。この中身をあなたのサーバの ~/.ssh/authorized_keys に追加してください。鍵ペアを再度生成するにはここをタップしてください。</string>
+    <string name="keypair_succ_nonexist">鍵ペアの生成に成功しました。再度生成するにはここをタップしてください。</string>
+
+    <string name="please_grant_permission">内部ストレージを読み取るには権限が必要です。次のダイアログで許可してください。</string>
+    
+    <string name="do_you_want_to_backup_now">今すぐバックアップしますか?</string>
+</resources>

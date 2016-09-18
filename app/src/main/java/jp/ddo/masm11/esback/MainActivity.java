@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity
 	if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 	    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
 		AlertDialog dialog = new AlertDialog.Builder(this)
-			.setMessage("Please grant permission.")
+			.setMessage(R.string.please_grant_permission)
 			.setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 			    @Override
 			    public void onClick(DialogInterface dialog, int id) {

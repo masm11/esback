@@ -5,66 +5,66 @@
     android:layout_height="wrap_content">
   
   <PreferenceCategory
-      android:title="Destination">
+      android:title="@string/destination">
 
     <EditTextPreference
 	android:key="hostname"
-	android:title="Hostname"
+	android:title="@string/hostname"
 	android:summary=""
-	android:dialogTitle="Hostname"
+	android:dialogTitle="@string/hostname"
 	android:inputType="text"
 	android:defaultValue="localhost" />
     
     <EditTextPreference
 	android:key="username"
-	android:title="Username"
+	android:title="@string/username"
 	android:summary=""
-	android:dialogTitle="Username"
+	android:dialogTitle="@string/username"
 	android:inputType="text"
 	android:defaultValue="someone" />
     
     <EditTextPreference
 	android:key="directory"
-	android:title="Directory"
+	android:title="@string/directory"
 	android:summary=""
-	android:dialogTitle="Directory"
+	android:dialogTitle="@string/directory"
 	android:inputType="text"
 	android:defaultValue="/home/someone" />
     
     <jp.ddo.masm11.esback.GenerateKeyPairPreference
 	android:key="gen_keypair"
-	android:title="Generate key pair"
+	android:title="@string/generate_key_pair"
 	android:summary=""
 	android:defaultValue="init"/>
     
   </PreferenceCategory>
 
   <PreferenceCategory
-      android:title="Schedule">
+      android:title="@string/schedule">
     
     <jp.ddo.masm11.esback.TimePickerPreference
 	android:key="start_time"
-	android:title="Start Time"
+	android:title="@string/start_time"
 	android:defaultValue="3:00"
 	android:summary=""/>
     
     <EditTextPreference
 	android:key="essid"
-	android:title="Wi-Fi ESSID"
+	android:title="@string/wifi_essid"
 	android:summary=""
-	android:dialogTitle="Wi-Fi ESSID"
+	android:dialogTitle="@string/wifi_essid"
 	android:inputType="text"
 	android:defaultValue="" />
 
     <jp.ddo.masm11.esback.BackupNowPreference
 	android:key="backup_now"
-        android:title="Backup now"
-	android:summary="Tap here to backup now."/>
+        android:title="@string/backup_now"
+	android:summary="@string/tap_here_to_backup_now"/>
     
   </PreferenceCategory>
   
   <PreferenceCategory
       android:key="dirs"
-      android:title="Directories"/>
+      android:title="@string/directories"/>
 
 </PreferenceScreen>

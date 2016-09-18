@@ -30,7 +30,7 @@ public class GenerateKeyPairPreference extends Preference {
 	protected void onPreExecute() {
 	    failed = true;
 	    
-	    pd = ProgressDialog.show(getContext(), null, "Generating...");
+	    pd = ProgressDialog.show(getContext(), null, getContext().getResources().getString(R.string.generating));
 	}
 	
 	@Override
@@ -70,8 +70,8 @@ public class GenerateKeyPairPreference extends Preference {
 	    }
 	    
 	    AlertDialog dialog = new AlertDialog.Builder(getContext())
-		    .setMessage(failed ? "Key pair generation was failed." : "A key pair was successfully generated and saved.")
-		    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		    .setMessage(failed ? R.string.generated_fail : R.string.generated_succ)
+		    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 			    // NOP
 			}
@@ -119,16 +119,16 @@ public class GenerateKeyPairPreference extends Preference {
 	switch (curState) {
 	default:
 	case KEYPAIR_INIT:
-	    summary = "Tap here to generate a key pair.";
+	    summary = getContext().getResources().getString(R.string.keypair_init);
 	    break;
 	case KEYPAIR_FAILED:
-	    summary = "Latest keypair generation was failed. Tap here to regenerate one.";
+	    summary = getContext().getResources().getString(R.string.keypair_failed);
 	    break;
 	case KEYPAIR_SUCCESS:
 	    if (pubkey_file.exists()) {
-		summary = String.format("The public key was saved as %s. Append its content to your server's ~/.ssh/authorized_keys. Tap here to regenerate a key pair.", pubkey_path);
+		summary = getContext().getResources().getString(R.string.keypair_succ_exist, pubkey_path);
 	    } else {
-		summary = "Latest key pair generation was successful. Tap here to regenerate one.";
+		summary = getContext().getResources().getString(R.string.keypair_succ_nonexist);
 	    }
 	}
 	
