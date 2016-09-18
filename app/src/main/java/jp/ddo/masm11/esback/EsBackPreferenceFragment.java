@@ -20,12 +20,12 @@ import java.util.Comparator;
 import java.util.Calendar;
 import java.text.DateFormat;
 
-public class PrefFragDestination extends PreferenceFragment {
+public class EsBackPreferenceFragment extends PreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
 	Log.d("");
 	super.onCreate(savedInstanceState);
-	addPreferencesFromResource(R.xml.pref_frag_destination);
+	addPreferencesFromResource(R.xml.preference_fragment);
 	
 	PreferenceManager manager = getPreferenceManager();
 	PreferenceCategory cat = (PreferenceCategory) manager.findPreference("dirs");

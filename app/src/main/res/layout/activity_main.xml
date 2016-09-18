@@ -12,8 +12,8 @@
     tools:context="jp.ddo.masm11.esback.MainActivity">
 
   <fragment
-      class="jp.ddo.masm11.esback.PrefFragDestination"
-      android:id="@+id/frag_dest"
+      class="jp.ddo.masm11.esback.EsBackPreferenceFragment"
+      android:id="@+id/pref_frag"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
 
