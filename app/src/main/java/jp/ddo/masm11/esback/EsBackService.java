@@ -1,6 +1,8 @@
 package jp.ddo.masm11.esback;
 
 import android.app.Service;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.os.IBinder;
 import android.os.Environment;
 import android.os.BatteryManager;
@@ -14,6 +16,8 @@ import android.net.wifi.WifiManager;
 
 import java.util.Map;
 import java.io.File;
+import java.text.DateFormat;
+import java.util.Calendar;
 
 public class EsBackService extends Service {
     private PowerManager powerManager;
@@ -31,6 +35,8 @@ public class EsBackService extends Service {
 	Log.d("flags=%d", flags);
 	if (flags == 0 && intent != null) {
 	    Map<String, ?> prefMap = PreferenceManager.getDefaultSharedPreferences(this).getAll();
+	    
+	    schedule(prefMap);
 	    
 	    if (checkCondition(prefMap)) {
 		Thread thread = new Thread(new EsBackThread(
@@ -102,5 +108,32 @@ public class EsBackService extends Service {
 	    }
 	}
 	return true;
+    }
+    
+    private void schedule(Map<String, ?> prefMap) {
+	schedule(this, (Integer) prefMap.get("start_time"));
+    }
+    
+    static void schedule(Context context, int setting) {
+	AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+	
+	Intent intent = new Intent(context, EsBackService.class);
+	PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+	
+	Calendar now = Calendar.getInstance();
+	now.add(Calendar.SECOND, 5);
+	Calendar sched = (Calendar) now.clone();
+	sched.set(Calendar.HOUR_OF_DAY, setting / 60);
+	sched.set(Calendar.MINUTE, setting % 60);
+	sched.set(Calendar.SECOND, 0);
+	sched.set(Calendar.MILLISECOND, 0);
+	if (sched.compareTo(now) < 0) {
+	    // 指定時刻はもう過ぎていたので、次の日に。
+	    sched.add(Calendar.DAY_OF_MONTH, 1);
+	}
+	
+	Log.d("scheduling at %s", DateFormat.getDateTimeInstance().format(sched.getTime()));
+	manager.cancel(pi);
+	manager.set(AlarmManager.RTC, sched.getTimeInMillis(), pi);
     }
 }
