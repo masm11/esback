@@ -57,6 +57,7 @@ public class EsBackService extends Service {
     
     @Override
     public void onCreate() {
+	Log.init(getExternalCacheDir());
 	Log.d("");
 	powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EsBack");

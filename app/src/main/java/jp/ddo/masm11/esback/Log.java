@@ -84,7 +84,11 @@ class Log {
 	}
     }
     
+    private static Thread thread;
     static void init(File dir) {
+	if (thread != null)
+	    return;
+	
 	File logFile = new File(dir, "log.txt");
 	
 	try {
@@ -99,7 +103,7 @@ class Log {
 	    android.util.Log.e("Log", "ioexception", e);
 	}
 	
-	Thread thread = new Thread(new Logger());
+	thread = new Thread(new Logger());
 	thread.start();
     }
     
