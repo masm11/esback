@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceCategory;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -56,7 +57,7 @@ public class PrefFragDestination extends PreferenceFragment {
     }
     
     private void addDirs(PreferenceCategory cat) {
-	File[] paths = new File("/sdcard/").listFiles();
+	File[] paths = Environment.getExternalStorageDirectory().listFiles();
 	if (paths == null)	// permission がない状態では null になる。
 	    return;
 	String[] dirs = new String[paths.length];
