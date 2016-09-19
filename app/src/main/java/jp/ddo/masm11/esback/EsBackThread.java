@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.File;
 import java.util.Map;
 import java.util.Date;
+import java.util.Locale;
 import java.text.SimpleDateFormat;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -145,7 +146,7 @@ public class EsBackThread implements Runnable {
 	    ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
 	    channel.connect();
 	    
-	    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmss");
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US);
 	    String bkupPath = String.format("%s/android-%s.tar.gz",
 		    pref.get("directory"), sdf.format(new Date()));
 	    

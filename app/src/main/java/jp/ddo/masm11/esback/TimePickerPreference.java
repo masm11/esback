@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.widget.TimePicker;
 import android.view.View;
 
+import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -92,6 +93,11 @@ public class TimePickerPreference extends DialogPreference {
     }
     public static String getDisplayString(int val) {
 	Log.d("val=%d", val);
-	return String.format("%d:%02d", val / 60 % 24, val % 60);
+	Calendar cal = Calendar.getInstance();
+	cal.set(Calendar.HOUR_OF_DAY, val / 60 % 24);
+	cal.set(Calendar.MINUTE, val % 60);
+	cal.set(Calendar.SECOND, 0);
+	cal.set(Calendar.MILLISECOND, 0);
+	return String.format("%tR", cal);
     }
 }

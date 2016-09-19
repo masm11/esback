@@ -13,7 +13,7 @@
     <string name="tap_here_to_backup_now">Tap here to backup now.</string>
     <string name="directories">Directories</string>
     
-    <string name="generating">Generating...</string>
+    <string name="generating">Generating&#8230;</string>
     <string name="generated_succ">A key pair was successfully generated and saved.</string>
     <string name="generated_fail">Key pair generation was failed.</string>
     <string name="keypair_init">Tap here to generate a key pair.</string>
@@ -25,7 +25,7 @@
     
     <string name="do_you_want_to_backup_now">Backup now?</string>
     
-    <string name="backup_in_progress">Backup in progress...</string>
+    <string name="backup_in_progress">Backup in progress&#8230;</string>
     <string name="backup_done">Backup done.</string>
-    <string name="backup_error">An error occured while backup.</string>
+    <string name="backup_error">An error occurred while backup.</string>
 </resources>

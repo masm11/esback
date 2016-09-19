@@ -13,7 +13,7 @@
     <string name="tap_here_to_backup_now">今すぐバックアップするにはここをタップしてください。</string>
     <string name="directories">ディレクトリ</string>
 
-    <string name="generating">生成中...</string>
+    <string name="generating">生成中&#8230;</string>
     <string name="generated_succ">鍵ペアを生成し、保存しました。</string>
     <string name="generated_fail">鍵ペアの生成に失敗しました。</string>
     <string name="keypair_init">鍵ペアを生成するにはここをタップしてください。</string>
@@ -25,7 +25,7 @@
     
     <string name="do_you_want_to_backup_now">今すぐバックアップしますか?</string>
     
-    <string name="backup_in_progress">バックアップ中です...</string>
+    <string name="backup_in_progress">バックアップ中です&#8230;</string>
     <string name="backup_done">バックアップが完了しました。</string>
     <string name="backup_error">バックアップ中にエラーが発生しました。</string>
 </resources>
