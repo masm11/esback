@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="jp.ddo.masm11.esback">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -23,6 +24,12 @@
         </activity>
 	
 	<service android:name=".EsBackService"/>
+
+	<receiver android:name=".BootReceiver">
+	  <intent-filter>
+	    <action android:name="android.intent.action.BOOT_COMPLETED"/>
+	  </intent-filter>
+	</receiver>
 	
     </application>
 
