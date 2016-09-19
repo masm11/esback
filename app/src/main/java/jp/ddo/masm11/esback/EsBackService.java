@@ -26,6 +26,8 @@ import java.util.Calendar;
 public class EsBackService extends Service {
     private PowerManager powerManager;
     private PowerManager.WakeLock wakeLock;
+    private WifiManager wifiManager;
+    private WifiManager.WifiLock wifiLock;
     private NotificationManager notificationManager;
     private NotificationCompat.Builder notificationBuilder;
     private long lastProgressTime = 0;
@@ -49,6 +51,7 @@ public class EsBackService extends Service {
 	    // thread.join() したいけど、ここじゃ無理だよなぁ。
 	    Log.d("release wakelock.");
 	    wakeLock.release();
+	    wifiLock.release();
 	    Log.d("stop self.");
 	    stopSelf();
 	    Log.d("end.");
@@ -61,6 +64,8 @@ public class EsBackService extends Service {
 	Log.d("");
 	powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EsBack");
+	wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+	wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "EsBack");
     }
     
     @Override
@@ -80,6 +85,7 @@ public class EsBackService extends Service {
 		// 重いので下げておく。
 		thread.setPriority(Thread.MIN_PRIORITY);
 		wakeLock.acquire();
+		wifiLock.acquire();
 		thread.start();
 		setNotification(false, 0, 0, null);
 	    }
