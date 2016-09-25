@@ -22,6 +22,8 @@ import java.util.Map;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 public class EsBackService extends Service {
     private PowerManager powerManager;
@@ -49,6 +51,7 @@ public class EsBackService extends Service {
 	public void onFinished() {
 	    setNotification(true, 0, 0, throwable);
 	    // thread.join() したいけど、ここじゃ無理だよなぁ。
+	    stopForeground(false);
 	    Log.d("release wakelock.");
 	    wakeLock.release();
 	    wifiLock.release();
@@ -62,10 +65,29 @@ public class EsBackService extends Service {
     public void onCreate() {
 	Log.init(getExternalCacheDir());
 	Log.d("");
+	
 	powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-	wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EsBack");
+	/* 画面が消えると、ICMPv6 RA を受け取らなくなるらしい。
+	 * そのまま IPv6 アドレスが消滅して、接続が切れる。
+	 * 消滅した後には RA を受け取って、IPv6 アドレスが復活する。
+	 * わけが解らないが、画面を消さなければ大丈夫みたい。
+	 * 充電中でなかったら backup しないので、バッテリ的には問題ない。
+	 * 2016/09/25, Xperia X Performance, Android 6.0.1.
+	 */
+	wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "EsBack");
 	wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 	wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "EsBack");
+	
+/*
+	// wifiManager.enableVerboseLogging(10);
+	try {
+	    Class klass = wifiManager.getClass();
+	    Method method = klass.getMethod("enableVerboseLogging", int.class);
+	    method.invoke(wifiManager, 10);
+	} catch (Exception e) {
+	    Log.w(e, "no such method?");
+	}
+*/
     }
     
     @Override
@@ -88,6 +110,7 @@ public class EsBackService extends Service {
 		wifiLock.acquire();
 		thread.start();
 		setNotification(false, 0, 0, null);
+		startForeground(1, notificationBuilder.build());
 	    }
 	}
 	return START_NOT_STICKY;
@@ -110,10 +133,10 @@ public class EsBackService extends Service {
 	if (completed) {
 	    notificationBuilder.setProgress(0, 0, false);
 	    notificationBuilder.setContentText(getResources().getText(e == null ? R.string.backup_done : R.string.backup_error));
-	    notificationManager.notify(0, notificationBuilder.build());
+	    notificationManager.notify(1, notificationBuilder.build());
 	} else if (max == 0) {
 	    notificationBuilder.setProgress(0, 0, true);
-	    notificationManager.notify(0, notificationBuilder.build());
+	    notificationManager.notify(1, notificationBuilder.build());
 	} else {
 	    int m = (int) (max / 1024);
 	    int c = (int) (cur / 1024);
@@ -127,7 +150,7 @@ public class EsBackService extends Service {
 	    long now = System.currentTimeMillis();
 	    if (now >= lastProgressTime + 500) {
 		lastProgressTime = now;
-		notificationManager.notify(0, notificationBuilder.build());
+		notificationManager.notify(1, notificationBuilder.build());
 	    }
 	}
     }
