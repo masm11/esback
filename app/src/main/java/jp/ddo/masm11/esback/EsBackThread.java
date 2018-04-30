@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
@@ -33,14 +34,14 @@ public class EsBackThread implements Runnable {
     
     private long curBytes, maxBytes;
     
-    private void sendFileTo(File topDir, String relPath, TarArchiveOutputStream tar, boolean scanning)
+    private void sendFileTo(File topDir, String prefix, String relPath, TarArchiveOutputStream tar, boolean scanning)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
 	File file = new File(topDir, relPath);
 	
 	if (file.isDirectory()) {
 	    if (!scanning) {
-		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, prefix + "/" + relPath);
 		tar.putArchiveEntry(e);
 		tar.closeArchiveEntry();
 	    }
@@ -51,14 +52,14 @@ public class EsBackThread implements Runnable {
 		return;
 	    }
 	    for (File f: files)
-		sendFileTo(topDir, relPath + "/" + f.getName(), tar, scanning);
+		sendFileTo(topDir, prefix, relPath + "/" + f.getName(), tar, scanning);
 	} else {
 	    if (scanning)
 		curBytes += file.length();
 	    else {
 		FileInputStream fis = new FileInputStream(file);
 		
-		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, relPath);
+		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, prefix + "/" + relPath);
 		tar.putArchiveEntry(e);
 		
 		long fileSize = e.getSize();
@@ -95,20 +96,23 @@ public class EsBackThread implements Runnable {
     
     private void sendTreeTo(File topDir, TarArchiveOutputStream tar, boolean scanning)
 	    throws IOException {
-	File[] files = topDir.listFiles();
-	if (files == null) {
-	    Log.w("listFiles() failed.");
+	ArrayList<EsBackPreferenceFragment.Directory> dirs = EsBackPreferenceFragment.listDirectory();
+	if (dirs.isEmpty()) {
+	    Log.w("listDirectory() failed.");
 	    return;
 	}
 	
-	for (File file: files) {
-	    String name = file.getName();
-	    Boolean onoff = (Boolean) pref.get("dir_" + name);
+	for (EsBackPreferenceFragment.Directory dir: dirs) {
+	    File parent = topDir;
+	    if (dir.path_to != null)
+		parent = new File("/storage/" + dir.path_to);
+	    String name = dir.name;
+	    Boolean onoff = (Boolean) pref.get(dir.key);
 	    if (onoff != null && onoff) {
-		Log.d("%s: on", name);
-		sendFileTo(topDir, name, tar, scanning);
+		Log.d("%s: on", dir.display_name);
+		sendFileTo(parent, dir.path_to == null ? "(internal)" : dir.path_to, name, tar, scanning);
 	    } else {
-		Log.d("%s: off", name);
+		Log.d("%s: off", dir.display_name);
 	    }
 	}
     }
