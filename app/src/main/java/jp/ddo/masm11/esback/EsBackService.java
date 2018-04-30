@@ -1,9 +1,10 @@
 package jp.ddo.masm11.esback;
 
-import android.support.v7.app.NotificationCompat;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.os.IBinder;
 import android.os.Environment;
@@ -31,7 +32,7 @@ public class EsBackService extends Service {
     private WifiManager wifiManager;
     private WifiManager.WifiLock wifiLock;
     private NotificationManager notificationManager;
-    private NotificationCompat.Builder notificationBuilder;
+    private Notification.Builder notificationBuilder;
     private long lastProgressTime = 0;
     
     private class ThreadProgressListener implements EsBackThread.ProgressListener {
@@ -124,7 +125,11 @@ public class EsBackService extends Service {
     private void setNotification(boolean completed, long cur, long max, Throwable e) {
 	if (notificationManager == null) {
 	    notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-	    notificationBuilder = new NotificationCompat.Builder(this);
+	    
+	    NotificationChannel channel = new NotificationChannel("notify_channel_1", "バックアップ中", NotificationManager.IMPORTANCE_LOW);
+	    notificationManager.createNotificationChannel(channel);
+	    
+	    notificationBuilder = new Notification.Builder(this, "notify_channel_1");
 	    notificationBuilder.setContentTitle("EsBack");
 	    notificationBuilder.setContentText(getResources().getText(R.string.backup_in_progress));
 	    notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
