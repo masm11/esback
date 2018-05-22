@@ -18,6 +18,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.widget.Toast;
 
 import java.util.Map;
 import java.io.File;
@@ -181,6 +182,7 @@ public class EsBackService extends Service {
 	    
 	default:
 	    Log.i("Battery not charging.");
+	    showToast("EsBack: 充電中ではありません");
 	    return false;
 	}
     }
@@ -190,14 +192,17 @@ public class EsBackService extends Service {
 	NetworkInfo ni = cm.getActiveNetworkInfo();
 	if (ni == null) {
 	    Log.i("No active network.");
+	    showToast("EsBack: ネットワークがありません");
 	    return false;
 	}
 	if (!ni.isConnected()) {
 	    Log.i("Active network not connected.");
+	    showToast("EsBack: ネットワークにつながっていません");
 	    return false;
 	}
 	if (ni.getType() != ConnectivityManager.TYPE_WIFI) {
 	    Log.i("Active network is not wifi.");
+	    showToast("EsBack: ネットワークが Wi-Fi ではありません");
 	    return false;
 	}
 	
@@ -205,12 +210,14 @@ public class EsBackService extends Service {
 	WifiInfo info = manager.getConnectionInfo();
 	if (info == null) {
 	    Log.i("No current Wi-Fi connection.");
+	    showToast("EsBack: Wi-Fi 情報が取得できません");
 	    return false;
 	}
 	String pref_essid = (String) prefMap.get("essid");
 	if (!pref_essid.equals("")) {
-	    if (info.getSSID().equals(pref_essid)) {
+	    if (!info.getSSID().equals("\"" + pref_essid + "\"")) {
 		Log.i("Essid not matches.");
+		showToast("EsBack: ESSID が一致しません");
 		return false;
 	    }
 	}
@@ -221,6 +228,11 @@ public class EsBackService extends Service {
 	schedule(this, (Integer) prefMap.get("start_time"));
     }
     
+    private void showToast(String msg) {
+	Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
+	toast.show();
+    }
+
     static void schedule(Context context, int setting) {
 	AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 	
