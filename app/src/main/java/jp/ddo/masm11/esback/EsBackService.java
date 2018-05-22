@@ -156,7 +156,7 @@ public class EsBackService extends Service {
 	    
 	    if (startTime == 0)
 		startTime = now;
-	    if (now > startTime) {
+	    if (now > startTime && c > 0) {
 		long elapsed = now - startTime;
 		int eta = (int) (elapsed / c * m - elapsed);
 		eta = (eta + 999) / 1000;	// 秒未満切り上げ
