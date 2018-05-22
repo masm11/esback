@@ -158,11 +158,14 @@ public class EsBackService extends Service {
 		startTime = now;
 	    if (now > startTime) {
 		long elapsed = now - startTime;
-		long eta = elapsed / c * m - elapsed;
-		eta = (eta + 999) / 1000;
-		int hh = (int) (eta / 3600);
-		int mm = (int) (eta % 3600 / 60);
-		int ss = (int) (eta % 60);
+		int eta = (int) (elapsed / c * m - elapsed);
+		eta = (eta + 999) / 1000;	// 秒未満切り上げ
+		int hh, mm, ss;
+		ss = eta % 60;
+		eta = eta / 60;
+		mm = eta % 60;
+		eta = eta / 60;
+		hh = eta;
 		String text;
 		if (hh >= 1)
 		    text = String.format("ETA: %d:%02d:%02d", hh, mm, ss);
