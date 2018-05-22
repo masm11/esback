@@ -153,32 +153,33 @@ public class EsBackService extends Service {
 	    notificationBuilder.setProgress(m, c, false);
 	    
 	    long now = System.currentTimeMillis();
-	    
 	    if (startTime == 0)
 		startTime = now;
-	    if (now > startTime && c > 0) {
-		double elapsed = (now - startTime) / 1000.0;
-		int eta = (int) (elapsed * ((double) m / c) - elapsed);
-		int hh, mm, ss;
-		ss = eta % 60;
-		eta = eta / 60;
-		mm = eta % 60;
-		eta = eta / 60;
-		hh = eta;
-		String text;
-		if (hh >= 1)
-		    text = String.format("ETA: %d:%02d:%02d", hh, mm, ss);
-		else if (mm >= 1)
-		    text = String.format("ETA: %d:%02d", mm, ss);
-		else
-		    text = String.format("ETA: %ds", ss);
-		notificationBuilder.setSubText(text);
-	    }
 	    
 	    /* 超高速で更新すると、画面がめちゃめちゃ重くなるので、
 	     * ゆっくり更新する。
 	     */
 	    if (now >= lastProgressTime + 500) {
+		if (now > startTime && c > 0) {
+		    double elapsed = (now - startTime) / 1000.0;
+		    int eta = (int) (elapsed * ((double) m / c) - elapsed);
+		    // Log.d("elapsed: %d, eta: %d", (int) elapsed, eta);
+		    int hh, mm, ss;
+		    ss = eta % 60;
+		    eta = eta / 60;
+		    mm = eta % 60;
+		    eta = eta / 60;
+		    hh = eta;
+		    String text;
+		    if (hh >= 1)
+			text = String.format("ETA: %d:%02d:%02d", hh, mm, ss);
+		    else if (mm >= 1)
+			text = String.format("ETA: %d:%02d", mm, ss);
+		    else
+			text = String.format("ETA: %ds", ss);
+		    notificationBuilder.setSubText(text);
+		}
+		
 		lastProgressTime = now;
 		notificationManager.notify(1, notificationBuilder.build());
 	    }
