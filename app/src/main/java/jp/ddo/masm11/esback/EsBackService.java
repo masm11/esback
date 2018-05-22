@@ -35,6 +35,7 @@ public class EsBackService extends Service {
     private NotificationManager notificationManager;
     private Notification.Builder notificationBuilder;
     private long lastProgressTime = 0;
+    private long startTime;
     
     private class ThreadProgressListener implements EsBackThread.ProgressListener {
 	private Throwable throwable;
@@ -110,6 +111,7 @@ public class EsBackService extends Service {
 		thread.setPriority(Thread.MIN_PRIORITY);
 		wakeLock.acquire();
 		wifiLock.acquire();
+		startTime = 0;
 		thread.start();
 		setNotification(false, 0, 0, null);
 		startForeground(1, notificationBuilder.build());
@@ -150,10 +152,30 @@ public class EsBackService extends Service {
 		c = m;
 	    notificationBuilder.setProgress(m, c, false);
 	    
+	    long now = System.currentTimeMillis();
+	    
+	    if (startTime == 0)
+		startTime = now;
+	    if (now > startTime) {
+		long elapsed = now - startTime;
+		long eta = elapsed / c * m - elapsed;
+		eta = (eta + 999) / 1000;
+		int hh = (int) (eta / 3600);
+		int mm = (int) (eta % 3600 / 60);
+		int ss = (int) (eta % 60);
+		String text;
+		if (hh >= 1)
+		    text = String.format("ETA: %d:%02d:%02d", hh, mm, ss);
+		else if (mm >= 1)
+		    text = String.format("ETA: %d:%02d", mm, ss);
+		else
+		    text = String.format("ETA: %ds", ss);
+		notificationBuilder.setSubText(text);
+	    }
+	    
 	    /* 超高速で更新すると、画面がめちゃめちゃ重くなるので、
 	     * ゆっくり更新する。
 	     */
-	    long now = System.currentTimeMillis();
 	    if (now >= lastProgressTime + 500) {
 		lastProgressTime = now;
 		notificationManager.notify(1, notificationBuilder.build());
