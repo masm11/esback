@@ -262,7 +262,7 @@ public class EsBackService extends Service {
 	AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 	
 	Intent intent = new Intent(context, EsBackService.class);
-	PendingIntent pi = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+	PendingIntent pi = PendingIntent.getForegroundService(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 	
 	Calendar now = Calendar.getInstance();
 	now.add(Calendar.SECOND, 5);
@@ -279,5 +279,6 @@ public class EsBackService extends Service {
 	Log.d("scheduling at %s", DateFormat.getDateTimeInstance().format(sched.getTime()));
 	manager.cancel(pi);
 	manager.set(AlarmManager.RTC, sched.getTimeInMillis(), pi);
+	Log.d("scheduled.");
     }
 }
