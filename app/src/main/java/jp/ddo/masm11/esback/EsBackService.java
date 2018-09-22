@@ -21,7 +21,12 @@ import android.net.wifi.WifiManager;
 import android.widget.Toast;
 
 import java.util.Map;
+import java.io.IOException;
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.lang.reflect.Method;
@@ -36,6 +41,7 @@ public class EsBackService extends Service {
     private Notification.Builder notificationBuilder;
     private long lastProgressTime = 0;
     private long startTime;
+    private long newLastBackupTime;
     
     private class ThreadProgressListener implements EsBackThread.ProgressListener {
 	private Throwable throwable;
@@ -52,6 +58,15 @@ public class EsBackService extends Service {
 	
 	@Override
 	public void onFinished() {
+	    if (throwable == null) {
+		try (BufferedWriter br = new BufferedWriter(new FileWriter(new File(getFilesDir(), "lastBackupTime.txt")))) {
+		    String line = Long.toString(newLastBackupTime);
+		    br.write(line, 0, line.length());
+		} catch (IOException e) {
+		    Log.e(e, "lastBackupTime.txt");
+		} finally {
+		}
+	    }
 	    setNotification(true, 0, 0, throwable);
 	    // thread.join() したいけど、ここじゃ無理だよなぁ。
 	    stopForeground(false);
@@ -102,11 +117,20 @@ public class EsBackService extends Service {
 	    schedule(prefMap);
 	    
 	    if (checkCondition(prefMap)) {
+		long lastBackupTime = 0;
+		try (BufferedReader br = new BufferedReader(new FileReader(new File(getFilesDir(), "lastBackupTime.txt")))) {
+		    String line = br.readLine();
+		    if (line != null)
+			lastBackupTime = Long.parseLong(line);
+		} catch (IOException e) {
+		    Log.e(e, "lastBackupTime.txt");
+		}
+		newLastBackupTime = System.currentTimeMillis();
 		Thread thread = new Thread(new EsBackThread(
 				Environment.getExternalStorageDirectory(),
-				new File(getFilesDir(), "privkey").toString(),
 				prefMap,
-				new ThreadProgressListener()));
+				new ThreadProgressListener(),
+				lastBackupTime));
 		// 重いので下げておく。
 		thread.setPriority(Thread.MIN_PRIORITY);
 		wakeLock.acquire();

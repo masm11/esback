@@ -8,19 +8,16 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.List;
 import java.text.SimpleDateFormat;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.UserInfo;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.KeyPair;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.HttpCookie;
+import java.net.MalformedURLException;
+import javax.net.ssl.HttpsURLConnection;
 
 public class EsBackThread implements Runnable {
+    private static final String URL_BASE = "http://mike/esback/";
     
     public interface ProgressListener {
 	void onProgress(long cur, long max);
@@ -32,69 +29,80 @@ public class EsBackThread implements Runnable {
 	return (int) (a < b ? a : b);
     }
     
+    private long lastBackupTime;
+    private HttpCookie cookie;
     private long curBytes, maxBytes;
     
-    private void sendFileTo(File topDir, String prefix, String relPath, TarArchiveOutputStream tar, boolean scanning)
+    private void sendFileTo(File topDir, String prefix, String relPath, boolean scanning)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
 	File file = new File(topDir, relPath);
 	
 	if (file.isDirectory()) {
-	    if (!scanning) {
-		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, prefix + "/" + relPath);
-		tar.putArchiveEntry(e);
-		tar.closeArchiveEntry();
-	    }
-	    
 	    File[] files = file.listFiles();
 	    if (files == null) {
 		Log.w("%s: can't access.", file.toString());
 		return;
 	    }
 	    for (File f: files)
-		sendFileTo(topDir, prefix, relPath + "/" + f.getName(), tar, scanning);
+		sendFileTo(topDir, prefix, relPath + "/" + f.getName(), scanning);
 	} else {
 	    if (scanning)
 		curBytes += file.length();
 	    else {
-		FileInputStream fis = new FileInputStream(file);
-		
-		TarArchiveEntry e = (TarArchiveEntry) tar.createArchiveEntry(file, prefix + "/" + relPath);
-		tar.putArchiveEntry(e);
-		
-		long fileSize = e.getSize();
-		long writtenSize = 0;
-		
-		byte[] buf = new byte[1024];
-		while (writtenSize < fileSize) {
-		    int s = min(fileSize - writtenSize, buf.length);
-		    s = fis.read(buf, 0, s);
-		    if (s == -1)
-			break;
-		    tar.write(buf, 0, s);
-		    writtenSize += s;
-		    curBytes += s;
-		    progressListener.onProgress(curBytes, maxBytes);
+		long lastModified = file.lastModified();
+		if (lastModified < lastBackupTime) {
+		    try {
+			URL url = new URL(URL_BASE + "file/" + prefix + "/" + relPath);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Cookie", cookie.toString());
+			conn.setRequestProperty("Content-Type", "application/binary");
+			conn.connect();
+			
+			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+			    throw new RuntimeException("file not ok.");
+		    } catch (Exception e) {
+			Log.e(e, "error");
+		    }
+		    curBytes += file.length();
+		} else {
+		    FileInputStream fis = new FileInputStream(file);
+		    
+		    try {
+			URL url = new URL(URL_BASE + "file/" + prefix + "/" + relPath);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setChunkedStreamingMode(10240);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Cookie", cookie.toString());
+			conn.setRequestProperty("Content-Type", "application/binary");
+			conn.connect();
+			OutputStream os = conn.getOutputStream();
+			
+			byte[] buf = new byte[1024];
+			while (true) {
+			    int s = fis.read(buf);
+			    if (s == -1)
+				break;
+			    os.write(buf, 0, s);
+			    curBytes += s;
+			    progressListener.onProgress(curBytes, maxBytes);
+			}
+			os.flush();
+			
+			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+			    throw new RuntimeException("file not ok.");
+		    } catch (Exception e) {
+			Log.e(e, "error");
+		    } finally {
+			fis.close();
+		    }
 		}
-		
-		// read 中に file が小さくなった場合の処理
-		byte[] buf0 = new byte[1024];
-		while (writtenSize < fileSize) {
-		    int s = min(fileSize - writtenSize, buf0.length);
-		    tar.write(buf0, 0, s);
-		    writtenSize += s;
-		    curBytes += s;
-		    progressListener.onProgress(curBytes, maxBytes);
-		}
-		
-		tar.closeArchiveEntry();
-		
-		fis.close();
 	    }
 	}
     }
     
-    private void sendTreeTo(File topDir, TarArchiveOutputStream tar, boolean scanning)
+    private void sendTreeTo(File topDir, boolean scanning)
 	    throws IOException {
 	ArrayList<EsBackPreferenceFragment.Directory> dirs = EsBackPreferenceFragment.listDirectory();
 	if (dirs.isEmpty()) {
@@ -110,32 +118,72 @@ public class EsBackThread implements Runnable {
 	    Boolean onoff = (Boolean) pref.get(dir.key);
 	    if (onoff != null && onoff) {
 		Log.d("%s: on", dir.display_name);
-		sendFileTo(parent, dir.path_to == null ? "(internal)" : dir.path_to, name, tar, scanning);
+		sendFileTo(parent, dir.path_to == null ? "(internal)" : dir.path_to, name, scanning);
 	    } else {
 		Log.d("%s: off", dir.display_name);
 	    }
 	}
     }
     
+    private HttpCookie getSession()
+	    throws MalformedURLException, IOException {
+	URL url = new URL(URL_BASE + "begin");
+	HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	conn.connect();
+	if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+	    throw new RuntimeException("begin not ok.");
+	String str = conn.getHeaderField("Set-Cookie");
+	if (str == null)
+	    throw new RuntimeException("No set-cookie.");
+	List<HttpCookie> cookies = HttpCookie.parse(str);
+	for (HttpCookie cookie: cookies) {
+	    if (cookie.getName().equals("session"))
+		return cookie;
+	}
+	throw new RuntimeException("No session.");
+    }
+    
+    private void finishSession()
+	    throws MalformedURLException, IOException {
+	URL url = new URL(URL_BASE + "finish");
+	HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	conn.setRequestProperty("Cookie", cookie.toString());
+	conn.connect();
+	if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+	    throw new RuntimeException("finish not ok.");
+    }
+    
     private final ProgressListener progressListener;
     private final File topDir;
-    private final String privKeyFile;
     private final Map<String, ?> pref;
     
-    EsBackThread(File topDir, String privKeyFile, Map<String, ?> pref, ProgressListener progressListener) {
+    EsBackThread(File topDir, Map<String, ?> pref, ProgressListener progressListener, long lastBackupTime) {
 	this.topDir = topDir;
-	this.privKeyFile = privKeyFile;
 	this.pref = pref;
 	this.progressListener = progressListener;
+	this.lastBackupTime = lastBackupTime;
     }
     
     public void run() {
 	Log.d("start.");
 	
 	try {
-	    JSch jsch = new JSch();
+	    cookie = getSession();
+	    Log.d("cookie=%s", cookie);
 	    
-	    jsch.addIdentity(privKeyFile, (String) null);
+	    maxBytes = 0;
+	    curBytes = 0;
+	    sendTreeTo(topDir, true);
+	    
+	    maxBytes = curBytes;
+	    curBytes = 0;
+	    Log.d("maxBytes=%d", maxBytes);
+	    sendTreeTo(topDir, false);
+	    
+	    finishSession();
+/*
+	    
+	    
 	    
 	    String host = (String) pref.get("hostname");
 	    String user = (String) pref.get("username");
@@ -173,6 +221,7 @@ public class EsBackThread implements Runnable {
 	    tar.close();
 	    channel.exit();
 	    session.disconnect();
+*/
 	} catch (Exception e) {
 	    Log.e(e, "exception");
 	    progressListener.onError(e);
@@ -180,29 +229,5 @@ public class EsBackThread implements Runnable {
 	
 	progressListener.onFinished();
 	Log.d("end.");
-    }
-    
-    private class EsUserInfo implements UserInfo {
-	public String getPassphrase() {
-	    return null;
-	}
-	public String getPassword() {
-	    return null;
-	}
-	public boolean promptPassword(String message) {
-	    Log.i("%s", message);
-	    return true;
-	}
-	public boolean promptPassphrase(String message) {
-	    Log.i("%s", message);
-	    return true;
-	}
-	public boolean promptYesNo(String message) {
-	    Log.i("%s", message);
-	    return true;
-	}
-	public void showMessage(String message) {
-	    Log.i("%s", message);
-	}
     }
 }
