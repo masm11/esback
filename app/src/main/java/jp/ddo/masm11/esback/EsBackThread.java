@@ -1,6 +1,8 @@
 package jp.ddo.masm11.esback;
 
+import java.io.BufferedWriter;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.List;
+import java.util.LinkedList;
 import java.text.SimpleDateFormat;
 import java.net.URL;
 import java.net.HttpURLConnection;
@@ -33,7 +36,7 @@ public class EsBackThread implements Runnable {
     private HttpCookie cookie;
     private long curBytes, maxBytes;
     
-    private void sendFileTo(File topDir, String prefix, String relPath, boolean scanning)
+    private void sendFileTo(File topDir, String prefix, String relPath, List<String> keeps, boolean scanning)
 	    throws IOException {
 	Log.d("relPath=%s", relPath);
 	File file = new File(topDir, relPath);
@@ -45,26 +48,14 @@ public class EsBackThread implements Runnable {
 		return;
 	    }
 	    for (File f: files)
-		sendFileTo(topDir, prefix, relPath + "/" + f.getName(), scanning);
+		sendFileTo(topDir, prefix, relPath + "/" + f.getName(), keeps, scanning);
 	} else {
 	    if (scanning)
 		curBytes += file.length();
 	    else {
 		long lastModified = file.lastModified();
 		if (lastModified < lastBackupTime) {
-		    try {
-			URL url = new URL(urlBase + "/file/" + prefix + "/" + relPath);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Cookie", cookie.toString());
-			conn.setRequestProperty("Content-Type", "application/binary");
-			conn.connect();
-			
-			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
-			    throw new RuntimeException("file not ok.");
-		    } catch (Exception e) {
-			Log.e(e, "error");
-		    }
+		    keeps.add(prefix + "/" + relPath);
 		    curBytes += file.length();
 		    progressListener.onProgress(curBytes, maxBytes);
 		} else {
@@ -119,7 +110,30 @@ public class EsBackThread implements Runnable {
 	    Boolean onoff = (Boolean) pref.get(dir.key);
 	    if (onoff != null && onoff) {
 		Log.d("%s: on", dir.display_name);
-		sendFileTo(parent, dir.path_to == null ? "(internal)" : dir.path_to, name, scanning);
+		List<String> keeps = new LinkedList<>();
+		sendFileTo(parent, dir.path_to == null ? "(internal)" : dir.path_to, name, keeps, scanning);
+		
+		if (!scanning) {
+		    try {
+			URL url = new URL(urlBase + "/keep");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Cookie", cookie.toString());
+			conn.setRequestProperty("Content-Type", "application/binary");
+			conn.connect();
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
+			for (String s: keeps) {
+			    bw.write(s, 0, s.length());
+			    bw.newLine();
+			}
+			bw.flush();
+			
+			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+			    throw new RuntimeException("keep not ok.");
+		    } catch (Exception e) {
+			Log.e(e, "error");
+		    }
+		}
 	    } else {
 		Log.d("%s: off", dir.display_name);
 	    }
