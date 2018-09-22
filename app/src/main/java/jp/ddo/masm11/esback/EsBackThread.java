@@ -66,6 +66,7 @@ public class EsBackThread implements Runnable {
 			Log.e(e, "error");
 		    }
 		    curBytes += file.length();
+		    progressListener.onProgress(curBytes, maxBytes);
 		} else {
 		    FileInputStream fis = new FileInputStream(file);
 		    
