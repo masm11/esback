@@ -8,34 +8,12 @@
       android:title="@string/destination">
 
     <EditTextPreference
-	android:key="hostname"
-	android:title="@string/hostname"
+	android:key="url"
+	android:title="@string/url"
 	android:summary=""
-	android:dialogTitle="@string/hostname"
+	android:dialogTitle="@string/url"
 	android:inputType="text"
-	android:defaultValue="localhost" />
-    
-    <EditTextPreference
-	android:key="username"
-	android:title="@string/username"
-	android:summary=""
-	android:dialogTitle="@string/username"
-	android:inputType="text"
-	android:defaultValue="someone" />
-    
-    <EditTextPreference
-	android:key="directory"
-	android:title="@string/directory"
-	android:summary=""
-	android:dialogTitle="@string/directory"
-	android:inputType="text"
-	android:defaultValue="/home/someone" />
-    
-    <jp.ddo.masm11.esback.GenerateKeyPairPreference
-	android:key="gen_keypair"
-	android:title="@string/generate_key_pair"
-	android:summary=""
-	android:defaultValue="init"/>
+	android:defaultValue="http://localhost/esback" />
     
   </PreferenceCategory>
 

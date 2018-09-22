@@ -17,7 +17,6 @@ import java.net.MalformedURLException;
 import javax.net.ssl.HttpsURLConnection;
 
 public class EsBackThread implements Runnable {
-    private static final String URL_BASE = "http://mike/esback/";
     
     public interface ProgressListener {
 	void onProgress(long cur, long max);
@@ -29,6 +28,7 @@ public class EsBackThread implements Runnable {
 	return (int) (a < b ? a : b);
     }
     
+    private String urlBase;
     private long lastBackupTime;
     private HttpCookie cookie;
     private long curBytes, maxBytes;
@@ -53,7 +53,7 @@ public class EsBackThread implements Runnable {
 		long lastModified = file.lastModified();
 		if (lastModified < lastBackupTime) {
 		    try {
-			URL url = new URL(URL_BASE + "file/" + prefix + "/" + relPath);
+			URL url = new URL(urlBase + "/file/" + prefix + "/" + relPath);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("POST");
 			conn.setRequestProperty("Cookie", cookie.toString());
@@ -70,7 +70,7 @@ public class EsBackThread implements Runnable {
 		    FileInputStream fis = new FileInputStream(file);
 		    
 		    try {
-			URL url = new URL(URL_BASE + "file/" + prefix + "/" + relPath);
+			URL url = new URL(urlBase + "/file/" + prefix + "/" + relPath);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setChunkedStreamingMode(10240);
 			conn.setRequestMethod("POST");
@@ -127,7 +127,7 @@ public class EsBackThread implements Runnable {
     
     private HttpCookie getSession()
 	    throws MalformedURLException, IOException {
-	URL url = new URL(URL_BASE + "begin");
+	URL url = new URL(urlBase + "/begin");
 	HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 	conn.connect();
 	if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
@@ -145,7 +145,7 @@ public class EsBackThread implements Runnable {
     
     private void finishSession()
 	    throws MalformedURLException, IOException {
-	URL url = new URL(URL_BASE + "finish");
+	URL url = new URL(urlBase + "/finish");
 	HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 	conn.setRequestProperty("Cookie", cookie.toString());
 	conn.connect();
@@ -161,6 +161,7 @@ public class EsBackThread implements Runnable {
 	this.topDir = topDir;
 	this.pref = pref;
 	this.progressListener = progressListener;
+	this.urlBase = (String) pref.get("url");
 	this.lastBackupTime = lastBackupTime;
     }
     

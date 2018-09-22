@@ -2,10 +2,8 @@
     <string name="app_name">EsBack</string>
 
     <string name="destination">Destination</string>
-    <string name="hostname">Hostname</string>
-    <string name="username">Username</string>
+    <string name="url">URL</string>
     <string name="directory">Directory</string>
-    <string name="generate_key_pair">Generate key pair</string>
     <string name="schedule">Schedule</string>
     <string name="start_time">Start Time</string>
     <string name="wifi_essid">Wi-Fi ESSID</string>

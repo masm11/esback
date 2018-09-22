@@ -2,10 +2,8 @@
     <string name="app_name">EsBack</string>
 
     <string name="destination">保存先</string>
-    <string name="hostname">ホスト名</string>
-    <string name="username">ユーザ名</string>
+    <string name="url">URL</string>
     <string name="directory">ディレクトリ</string>
-    <string name="generate_key_pair">鍵ペアを生成</string>
     <string name="schedule">スケジュール</string>
     <string name="start_time">開始時刻</string>
     <string name="wifi_essid">Wi-Fi ESSID</string>

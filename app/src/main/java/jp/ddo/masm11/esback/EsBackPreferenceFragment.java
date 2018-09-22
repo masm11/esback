@@ -32,17 +32,19 @@ public class EsBackPreferenceFragment extends PreferenceFragment {
 	PreferenceCategory cat = (PreferenceCategory) manager.findPreference("dirs");
 	addDirs(cat);
 	
-	for (String key: new String[] { "hostname", "username", "directory", "essid" }) {
+	for (String key: new String[] { "url", "directory", "essid" }) {
 	    EditTextPreference etp;
 	    etp = (EditTextPreference) findPreference(key);
-	    etp.setSummary(etp.getText());
-	    etp.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-		@Override
-		public boolean onPreferenceChange(Preference pref, Object val) {
-		    pref.setSummary(val.toString());
-		    return true;
-		}
-	    });
+	    if (etp != null) {
+		etp.setSummary(etp.getText());
+		etp.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+		    @Override
+		    public boolean onPreferenceChange(Preference pref, Object val) {
+			pref.setSummary(val.toString());
+			return true;
+		    }
+		});
+	    }
 	}
 	
 	TimePickerPreference tpp = (TimePickerPreference) findPreference("start_time");
@@ -63,6 +65,20 @@ public class EsBackPreferenceFragment extends PreferenceFragment {
 	    SwitchPreference pref = new SwitchPreference(getContext());
 	    pref.setKey(dir.key);
 	    pref.setTitle(dir.display_name);
+	    pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+		@Override
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+		    Log.d("class=%s", newValue.getClass().toString());
+		    if (newValue instanceof Boolean) {
+			Boolean b = (Boolean) newValue;
+			if (b) {
+			    Log.d("remove last.");
+			    new File(getContext().getFilesDir(), "lastBackupTime.txt").delete();
+			}
+		    }
+		    return true;
+		}
+	    });
 	    cat.addPreference(pref);
 	}
     }
